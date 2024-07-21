@@ -1,0 +1,6 @@
+@FileOperationsViaMinio_HostAddress = http://localhost:5172
+
+GET {{FileOperationsViaMinio_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
