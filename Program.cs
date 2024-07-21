@@ -1,3 +1,6 @@
+using FileOperationsViaMinio.Extensions;
+using FileOperationsViaMinio.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace FileOperationsViaMinio
 {
@@ -7,12 +10,23 @@ namespace FileOperationsViaMinio
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
-
             builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
+
+            #region FileOperationsViaMinio
+            builder.Services.Configure<MinioOptions>(builder.Configuration.GetSection("MinioOptions"));
+            builder.Services.AddMinio();
+            builder.Services.CreateDefaultBucket().Wait();
+            builder.Services.AddApplicationServices();
+            #endregion
+
+            #region DbContext
+            builder.Services.AddDbContext<ApplicationContext>(options =>
+                options.UseNpgsql(
+                    builder.Configuration.GetConnectionString("DefaultConnection"),
+                    b => b.MigrationsAssembly(typeof(ApplicationContext).Assembly.FullName)));
+            #endregion
 
             var app = builder.Build();
 
@@ -22,14 +36,9 @@ namespace FileOperationsViaMinio
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
-
             app.UseHttpsRedirection();
-
             app.UseAuthorization();
-
-
             app.MapControllers();
-
             app.Run();
         }
     }
